@@ -2,7 +2,6 @@ package me.puneetghodasara.revolut.dao;
 
 import me.puneetghodasara.revolut.entity.AccountEntity;
 
-import java.util.Currency;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -34,5 +33,10 @@ public class AccountInMemoryDao extends InMemoryDao<String, AccountEntity> imple
 //                .filter(record -> record.getValue().getCurrency().getNumericCode() == currency.getNumericCode())
                 .map(Map.Entry::getValue);
 
+    }
+
+    @Override
+    public void deleteAccount(final String accountId) {
+        storage.remove(accountId);
     }
 }

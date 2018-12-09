@@ -12,4 +12,6 @@ public interface AccountRepository {
     void updateAccount(final AccountEntity accountEntity);
 
     Stream<AccountEntity> getAllAccounts();
+
+    void deleteAccount(String accountId);
 }

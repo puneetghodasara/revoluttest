@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.Currency;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class UserInMemoryDaoTest {
 
@@ -19,6 +20,12 @@ public class UserInMemoryDaoTest {
         testObject = new UserInMemoryDao();
         actualObject = new UserEntity("mockUser-1");
         testObject.storage.put("mockUser-1", actualObject);
+    }
+
+    @Test
+    public void getUsers() {
+        final Stream<UserEntity> answerObject = testObject.getUsers();
+        Assert.assertEquals(1, answerObject.count());
     }
 
     @Test
@@ -34,7 +41,7 @@ public class UserInMemoryDaoTest {
 
         final UserEntity actualObject = testObject.getUser("mockUser-1")
                 .orElseThrow(AssertionError::new)
-                .withNewAccount(new AccountEntity("dummyAccount-1", Currency.getInstance("EUR")));
+                .withNewAccount(new AccountEntity("dummyAccount-1", Currency.getInstance("EUR")).getAccountId());
 
         testObject.updateUser(actualObject);
 

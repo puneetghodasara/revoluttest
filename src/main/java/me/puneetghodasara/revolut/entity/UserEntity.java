@@ -3,7 +3,6 @@ package me.puneetghodasara.revolut.entity;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A UserEntity class that holds all the user information </br>
@@ -14,7 +13,8 @@ public class UserEntity {
 
     private final String userId;
 
-    private final Set<AccountEntity> accounts;
+    // Reference to primary key of account
+    private final Set<String> accounts;
 
     public UserEntity(final String userId) {
         this(userId, Collections.EMPTY_SET);
@@ -23,15 +23,21 @@ public class UserEntity {
     /**
      * private because User would be registered without accounts only
      */
-    private UserEntity(final String userId, final Set<AccountEntity> accounts) {
+    private UserEntity(final String userId, final Set<String> accounts) {
         this.userId = userId;
         this.accounts = Collections.unmodifiableSet(accounts);
     }
 
 
-    public UserEntity withNewAccount(final AccountEntity newAccount){
-        final Set<AccountEntity> originalAccounts = new HashSet<>(this.accounts);
+    public UserEntity withNewAccount(final String newAccount){
+        final Set<String> originalAccounts = new HashSet<>(this.accounts);
         originalAccounts.add(newAccount);
+        return new UserEntity(this.userId, originalAccounts);
+    }
+
+    public UserEntity withOutAccount(final String newAccount){
+        final Set<String> originalAccounts = new HashSet<>(this.accounts);
+        originalAccounts.remove(newAccount);
         return new UserEntity(this.userId, originalAccounts);
     }
 
@@ -40,7 +46,7 @@ public class UserEntity {
         return userId;
     }
 
-    public Set<AccountEntity> getAccounts() {
+    public Set<String> getAccounts() {
         return Collections.unmodifiableSet(accounts);
     }
 

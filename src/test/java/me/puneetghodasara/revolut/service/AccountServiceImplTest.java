@@ -24,18 +24,20 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void open() throws AccountOperationException {
-        testObject.open(Currency.getInstance("EUR"));
+    public void testOpen() throws AccountOperationException {
+        final AccountEntity account = testObject.open(Currency.getInstance("EUR"));
+        Assert.assertNotNull(account);
+        Assert.assertEquals("EUR", account.getCurrency().getCurrencyCode());
         final long totalAccounts = accountRepository.getAllAccounts().count();
         Assert.assertEquals(1, totalAccounts);
     }
 
     @Test
-    public void credit() throws AccountOperationException {
-        final AccountEntity accountEntity = testObject.open(Currency.getInstance("EUR"));
-        final boolean credit = testObject.credit(accountEntity, 10.25);
+    public void testCredit() throws AccountOperationException {
+        final AccountEntity account = testObject.open(Currency.getInstance("EUR"));
+        final boolean credit = testObject.credit(account.getAccountId(), 10.25);
         Assert.assertTrue(credit);
-        final Double answer = testObject.getBalance(accountEntity);
+        final Double answer = testObject.getBalance(account.getAccountId());
         Assert.assertEquals(10.25, answer, DELTA);
     }
 
@@ -43,35 +45,51 @@ public class AccountServiceImplTest {
     @Test
     public void debit_Insufficient() throws AccountOperationException {
         final AccountEntity accountEntity = testObject.open(Currency.getInstance("EUR"));
-        final boolean debited = testObject.debit(accountEntity, 1D);
+        final boolean debited = testObject.debit(accountEntity.getAccountId(), 1D);
         Assert.assertFalse(debited);
     }
 
     @Test
     public void debit_Success() throws AccountOperationException {
         final AccountEntity accountEntity = testObject.open(Currency.getInstance("EUR"));
-        testObject.credit(accountEntity, 10D);
-        final boolean debited = testObject.debit(accountEntity, 1D);
+        testObject.credit(accountEntity.getAccountId(), 10D);
+        final boolean debited = testObject.debit(accountEntity.getAccountId(), 1D);
         Assert.assertTrue(debited);
 
-        final Double balance = testObject.getBalance(accountEntity);
+        final Double balance = testObject.getBalance(accountEntity.getAccountId());
         Assert.assertNotNull(balance);
         Assert.assertEquals(9D, balance, DELTA);
     }
 
     @Test
     public void getBalance() throws AccountOperationException {
-        final AccountEntity accountEntity = testObject.open(Currency.getInstance("EUR"));
-        Assert.assertEquals(0, testObject.getBalance(accountEntity), DELTA);
+        final String accountId = testObject.open(Currency.getInstance("EUR")).getAccountId();
+        Assert.assertEquals(0, testObject.getBalance(accountId), DELTA);
 
-        testObject.credit(accountEntity, 10D);
-        Assert.assertEquals(10, testObject.getBalance(accountEntity), DELTA);
+        testObject.credit(accountId, 10D);
+        Assert.assertEquals(10, testObject.getBalance(accountId), DELTA);
 
-        testObject.credit(accountEntity, 0.1D);
-        Assert.assertEquals(10.1, testObject.getBalance(accountEntity), DELTA);
+        testObject.credit(accountId, 0.1D);
+        Assert.assertEquals(10.1, testObject.getBalance(accountId), DELTA);
 
-        testObject.debit(accountEntity, 0.8D);
-        Assert.assertEquals(9.3, testObject.getBalance(accountEntity), DELTA);
+        testObject.debit(accountId, 0.8D);
+        Assert.assertEquals(9.3, testObject.getBalance(accountId), DELTA);
+
+    }
+
+    @Test
+    public void testDeleteAccount() throws AccountOperationException {
+        final String accountId = testObject.open(Currency.getInstance("EUR")).getAccountId();
+        final boolean deleted = testObject.deleteAccount(accountId);
+        Assert.assertTrue(deleted);
+    }
+
+    @Test(expected = AccountOperationException.class)
+    public void testDeleteAccountNonZeroBalance() throws AccountOperationException {
+        final String accountId = testObject.open(Currency.getInstance("EUR")).getAccountId();
+        testObject.credit(accountId, 2D);
+        final boolean deleted = testObject.deleteAccount(accountId);
+        Assert.assertFalse(deleted);
 
     }
 }

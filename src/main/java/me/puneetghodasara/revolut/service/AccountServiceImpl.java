@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Currency;
+import java.util.Optional;
 
 
 public class AccountServiceImpl implements AccountService {
@@ -35,7 +36,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public boolean credit(final AccountEntity accountEntity, final Double creditAmount) throws AccountOperationException {
+    public boolean credit(final String accountId, final Double creditAmount) throws AccountOperationException {
+        final AccountEntity accountEntity = getAccount(accountId)
+                .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT));
+
         logger.debug("Trying to credit amount {} to account {}", creditAmount, accountEntity.getAccountId());
 
         if (creditAmount <= 0) {
@@ -44,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountEntity.getAmountLock().writeLock().lock();
         try {
-            final Double currentBalance = getBalance(accountEntity);
+            final Double currentBalance = getBalance(accountId);
             final double newAmountValue = currentBalance + creditAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
             accountRepository.updateAccount(newAccount);
@@ -59,7 +63,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public boolean debit(final AccountEntity accountEntity, final Double debitAmount) throws AccountOperationException {
+    public boolean debit(final String accountId, final Double debitAmount) throws AccountOperationException {
+        final AccountEntity accountEntity = getAccount(accountId)
+                .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT));
+
         logger.debug("Trying to debit amount {} to account {}", debitAmount, accountEntity.getAccountId());
 
         if (debitAmount <= 0) {
@@ -68,7 +75,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountEntity.getAmountLock().writeLock().lock();
         try {
-            final Double currentBalance = getBalance(accountEntity);
+            final Double currentBalance = getBalance(accountId);
             if (currentBalance < debitAmount) {
                 throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INSUFFICIENT_BALANCE);
             }
@@ -86,7 +93,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Double getBalance(final AccountEntity accountEntity) throws AccountOperationException {
+    public Double getBalance(final String accountId) throws AccountOperationException {
+        final AccountEntity accountEntity = getAccount(accountId)
+                .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT));
+
         accountEntity.getAmountLock().readLock().lock();
         try {
             return accountRepository.getAccount(accountEntity.getAccountId())
@@ -95,5 +105,31 @@ public class AccountServiceImpl implements AccountService {
         } finally {
             accountEntity.getAmountLock().readLock().unlock();
         }
+    }
+
+    @Override
+    public boolean deleteAccount(final String accountId) throws AccountOperationException {
+        final AccountEntity accountEntity = getAccount(accountId)
+                .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT));
+        accountEntity.getAmountLock().writeLock().lock();
+
+        if (getBalance(accountId) > 0) {
+            logger.warn("Cannot delete account with non-zero balance");
+            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_DELETEING_ACCOUNTS);
+        }
+        try {
+            accountRepository.deleteAccount(accountId);
+        } catch (Exception e) {
+            logger.error("Error deleting account {} ", accountId);
+            return false;
+        } finally {
+            accountEntity.getAmountLock().writeLock().unlock();
+        }
+        return true;
+    }
+
+    @Override
+    public Optional<AccountEntity> getAccount(final String accountId) {
+        return accountRepository.getAccount(accountId);
     }
 }

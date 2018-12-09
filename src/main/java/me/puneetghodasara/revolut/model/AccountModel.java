@@ -1,10 +1,8 @@
 package me.puneetghodasara.revolut.model;
 
 import me.puneetghodasara.revolut.entity.AccountEntity;
-import me.puneetghodasara.revolut.entity.UserEntity;
 
 import java.io.Serializable;
-import java.util.Currency;
 
 /**
  * This class models the Account and can be transferred </br>
@@ -16,12 +14,17 @@ public class AccountModel implements Serializable {
 
     private final String currencyCode;
 
-    private final Double amount;
-
     public AccountModel(final String accountId, final String currencyCode, final Double amount) {
         this.accountId = accountId;
         this.currencyCode = currencyCode;
-        this.amount = amount;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
     }
 
     public static final AccountModel fromEntity(final AccountEntity accountEntity){
