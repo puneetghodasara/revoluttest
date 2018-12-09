@@ -23,15 +23,15 @@ public class AccountInMemoryDao extends InMemoryDao<String, AccountEntity> imple
     }
 
     @Override
-    public AccountEntity updateAccount(final AccountEntity accountEntity) {
-        return storage.put(accountEntity.getAccountId(), accountEntity);
+    public void updateAccount(final AccountEntity accountEntity) {
+        storage.put(accountEntity.getAccountId(), accountEntity);
     }
 
     @Override
-    public Stream<AccountEntity> getAccountsByCurrency(final Currency currency) {
+    public Stream<AccountEntity> getAllAccounts() {
         return storage.entrySet()
                 .stream()
-                .filter(record -> record.getValue().getCurrency().getNumericCode() == currency.getNumericCode())
+//                .filter(record -> record.getValue().getCurrency().getNumericCode() == currency.getNumericCode())
                 .map(Map.Entry::getValue);
 
     }

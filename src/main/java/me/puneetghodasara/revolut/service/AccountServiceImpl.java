@@ -24,8 +24,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountEntity open(final Currency currency) throws AccountOperationException {
         try {
-            final AccountEntity newAccount = new AccountEntity(accountNumberService.nextAccountNumber(), currency, 0d);
-            return accountRepository.updateAccount(newAccount);
+            final String accountId = accountNumberService.nextAccountNumber();
+            final AccountEntity newAccount = new AccountEntity(accountId, currency, 0d);
+            accountRepository.updateAccount(newAccount);
+            return accountRepository.getAccount(accountId)
+                    .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_OPENING_ACCOUNT));
         } catch (Exception e) {
             throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_OPENING_ACCOUNT);
         }
@@ -41,7 +44,8 @@ public class AccountServiceImpl implements AccountService {
 
         accountEntity.getAmountLock().writeLock().lock();
         try {
-            final double newAmountValue = accountEntity.getAmount() + creditAmount;
+            final Double currentBalance = getBalance(accountEntity);
+            final double newAmountValue = currentBalance + creditAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
             accountRepository.updateAccount(newAccount);
         } catch (final Exception e) {
@@ -68,7 +72,7 @@ public class AccountServiceImpl implements AccountService {
             if (currentBalance < debitAmount) {
                 throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INSUFFICIENT_BALANCE);
             }
-            final double newAmountValue = accountEntity.getAmount() - debitAmount;
+            final double newAmountValue = currentBalance - debitAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
             accountRepository.updateAccount(newAccount);
         } catch (final Exception e) {
@@ -82,10 +86,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Double getBalance(final AccountEntity accountEntity) {
+    public Double getBalance(final AccountEntity accountEntity) throws AccountOperationException {
         accountEntity.getAmountLock().readLock().lock();
         try {
-            return accountEntity.getAmount();
+            return accountRepository.getAccount(accountEntity.getAccountId())
+                    .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT))
+                    .getAmount();
         } finally {
             accountEntity.getAmountLock().readLock().unlock();
         }

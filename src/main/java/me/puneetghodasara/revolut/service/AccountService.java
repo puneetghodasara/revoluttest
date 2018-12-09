@@ -43,5 +43,5 @@ public interface AccountService {
      * @param accountEntity account for which balance enquiry is happening
      * @return the amount account has
      */
-    Double getBalance(final AccountEntity accountEntity);
+    Double getBalance(final AccountEntity accountEntity) throws AccountOperationException;
 }

@@ -15,7 +15,7 @@ public interface UserService {
      * @return newly registered UserEntity
      * @throws UserOperationException
      */
-    UserEntity register(final String userId) throws UserOperationException;
+    void register(final String userId) throws UserOperationException;
 
     /**
      * Adds an account to registered user </br>
@@ -24,5 +24,5 @@ public interface UserService {
      * @return
      * @throws UserOperationException
      */
-    void addAccount(UserEntity userEntity, AccountEntity accountEntity) throws UserOperationException;
+    UserEntity addAccount(UserEntity userEntity, AccountEntity accountEntity) throws UserOperationException;
 }

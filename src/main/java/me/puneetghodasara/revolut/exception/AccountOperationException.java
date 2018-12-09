@@ -6,7 +6,8 @@ public class AccountOperationException extends Exception {
         INVALID_CREDIT_ACCOUNT,
         INVALID_DEBIT_ACCOUNT,
         INSUFFICIENT_BALANCE,
-        ERROR_OPENING_ACCOUNT;
+        ERROR_OPENING_ACCOUNT,
+        UNKNOWN_ACCOUNT;
     }
 
     public AccountOperationException(final AccountOperationExceptionMessages message) {

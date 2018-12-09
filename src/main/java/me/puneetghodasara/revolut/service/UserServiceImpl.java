@@ -21,18 +21,19 @@ public class UserServiceImpl implements UserService {
      * Method is synchronized to prevent race condition
      */
     @Override
-    public synchronized UserEntity register(final String userId) throws UserOperationException {
+    public synchronized void register(final String userId) throws UserOperationException {
         final boolean present = userRepository.getUser(userId).isPresent();
         if (present) {
             logger.warn("User ID {} was already registered ", userId);
             throw new UserOperationException(UserOperationException.UserOperationExceptionMessages.USERID_TAKEN);
         }
 
-        return userRepository.updateUser(new UserEntity(userId));
+        userRepository.updateUser(new UserEntity(userId));
     }
 
     @Override
-    public void addAccount(final UserEntity userEntity, final AccountEntity accountEntity) {
-        userEntity.withNewAccount(accountEntity);
+    public UserEntity addAccount(final UserEntity userEntity, final AccountEntity accountEntity) {
+        final UserEntity newUserEntity = userEntity.withNewAccount(accountEntity);
+        return userRepository.updateUser(newUserEntity);
     }
 }

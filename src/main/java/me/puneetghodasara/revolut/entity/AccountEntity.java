@@ -22,6 +22,10 @@ public class AccountEntity {
 
     private final ReadWriteLock amountLock;
 
+    public AccountEntity(final String accountId, final Currency currency) {
+        this(accountId, currency, 0d);
+    }
+
     public AccountEntity(final String accountId, final Currency currency, final Double amount) {
         this.accountId = accountId;
         this.currency = currency;
@@ -58,4 +62,26 @@ public class AccountEntity {
         return amountLock;
     }
 
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final AccountEntity that = (AccountEntity) o;
+
+        return accountId != null ? accountId.equals(that.accountId) : that.accountId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return accountId != null ? accountId.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "AccountEntity{" +
+                "accountId='" + accountId + '\'' +
+                '}';
+    }
 }

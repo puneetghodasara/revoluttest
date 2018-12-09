@@ -3,6 +3,7 @@ package me.puneetghodasara.revolut.entity;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A UserEntity class that holds all the user information </br>
@@ -16,7 +17,7 @@ public class UserEntity {
     private final Set<AccountEntity> accounts;
 
     public UserEntity(final String userId) {
-        this(userId, new HashSet<>());
+        this(userId, Collections.EMPTY_SET);
     }
 
     /**
@@ -24,7 +25,7 @@ public class UserEntity {
      */
     private UserEntity(final String userId, final Set<AccountEntity> accounts) {
         this.userId = userId;
-        this.accounts = accounts;
+        this.accounts = Collections.unmodifiableSet(accounts);
     }
 
 
@@ -43,4 +44,26 @@ public class UserEntity {
         return Collections.unmodifiableSet(accounts);
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final UserEntity that = (UserEntity) o;
+
+        return userId != null ? userId.equals(that.userId) : that.userId == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return userId != null ? userId.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "userId='" + userId + '\'' +
+                ", accounts=" + accounts +
+                '}';
+    }
 }

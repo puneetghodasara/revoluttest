@@ -19,4 +19,10 @@ public class UserInMemoryDao extends InMemoryDao<String, UserEntity> implements 
                 .map(Map.Entry::getValue)
                 .findAny();
     }
+
+    @Override
+    public UserEntity updateUser(final UserEntity userEntity) {
+        storage.put(userEntity.getUserId(), userEntity);
+        return storage.get(userEntity.getUserId());
+    }
 }
