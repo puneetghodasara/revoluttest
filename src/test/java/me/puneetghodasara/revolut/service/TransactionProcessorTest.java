@@ -2,21 +2,16 @@ package me.puneetghodasara.revolut.service;
 
 import me.puneetghodasara.revolut.dao.AccountInMemoryDao;
 import me.puneetghodasara.revolut.dao.AccountRepository;
-import me.puneetghodasara.revolut.entity.AccountEntity;
 import me.puneetghodasara.revolut.entity.Transaction;
 import me.puneetghodasara.revolut.entity.TransactionStatus;
 import me.puneetghodasara.revolut.exception.AccountOperationException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import java.util.Currency;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class TransactionProcessorTest {
 
@@ -26,6 +21,7 @@ public class TransactionProcessorTest {
     private AccountService testAccountService;
     private AccountService testErrorAccountService;
 
+    // Can be mocked
     class ErrorenousAccountServiceImpl extends AccountServiceImpl {
 
         public ErrorenousAccountServiceImpl(final AccountRepository accountRepository, final AccountNumberService accountNumberService) {
@@ -44,9 +40,10 @@ public class TransactionProcessorTest {
         testTxBroker = new TransactionQueueBroker();
         AccountInMemoryDao accountRepository = new AccountInMemoryDao();
         testAccountService = new AccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
-        testTxProcessor = new TransactionProcessor(testTxBroker, testAccountService);
+        SameCurrencyConversionServiceImpl conversionService = new SameCurrencyConversionServiceImpl();
+        testTxProcessor = new TransactionProcessor(testTxBroker, testAccountService, conversionService);
         testErrorAccountService = new ErrorenousAccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
-        testErrorTxProcessor = new TransactionProcessor(testTxBroker, testErrorAccountService);
+        testErrorTxProcessor = new TransactionProcessor(testTxBroker, testErrorAccountService, conversionService);
     }
 
     @Test
@@ -102,6 +99,23 @@ public class TransactionProcessorTest {
 
         assertEquals(1, testAccountService.getBalance(accountId1), 0.00001);
         assertEquals(10, testAccountService.getBalance(accountId2), 0.00001);
+
+    }
+
+    @Test
+    public void testIntraCurrencyOperation() throws AccountOperationException {
+        final String accountId1 = testAccountService.open(Currency.getInstance("EUR")).getAccountId();
+        testAccountService.credit(accountId1, 11D);
+        final String accountId2 = testAccountService.open(Currency.getInstance("USD")).getAccountId();
+        final Transaction transaction = new Transaction.Builder(accountId1, accountId2, 10D).build();
+        testTxBroker.addTransaction(transaction);
+
+        testTxProcessor.run();
+
+        Assert.assertEquals(TransactionStatus.SUCCESS, transaction.getTransactionStatus());
+
+        assertEquals(1, testAccountService.getBalance(accountId1), 0.00001);
+        assertEquals(11.4, testAccountService.getBalance(accountId2), 0.00001);
 
     }
 }
