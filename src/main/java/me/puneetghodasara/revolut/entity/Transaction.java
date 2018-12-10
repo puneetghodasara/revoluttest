@@ -16,6 +16,8 @@ public class Transaction {
     private TransactionStatus transactionStatus;
     private String txStatusMessage;
 
+    private int attempted = 0;
+
     private static final AtomicLong transactionSequence = new AtomicLong();
 
     // Requires private access as we go for builder pattern
@@ -61,6 +63,14 @@ public class Transaction {
     public void updateTransactionStatus(final TransactionStatus newStatus, final String txStatusMessage){
         this.transactionStatus = newStatus;
         this.txStatusMessage = txStatusMessage;
+    }
+
+    public void updateAttempted(){
+        attempted++;
+    }
+
+    public int getAttempted() {
+        return attempted;
     }
 
     public static class Builder {

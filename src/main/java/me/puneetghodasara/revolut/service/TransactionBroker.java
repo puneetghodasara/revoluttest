@@ -29,5 +29,7 @@ public interface TransactionBroker {
      * in {@link Optional}
      * @return Transaction to process
      */
-    Optional<Transaction> getNextTransaction();
+    Optional<Transaction> getNextTransaction() throws InterruptedException;
+
+    boolean hasNext();
 }

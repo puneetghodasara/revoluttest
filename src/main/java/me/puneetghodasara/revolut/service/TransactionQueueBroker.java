@@ -15,15 +15,20 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TransactionQueueBroker implements TransactionBroker {
 
-    private static final Queue<Transaction> queue = new LinkedBlockingQueue<>();
+    private static final LinkedBlockingQueue<Transaction> queue = new LinkedBlockingQueue<>();
 
     @Override
     public boolean addTransaction(final Transaction transaction) {
-        return queue.add(transaction);
+        return queue.offer(transaction);
     }
 
     @Override
-    public Optional<Transaction> getNextTransaction() {
-        return Optional.ofNullable(queue.poll());
+    public Optional<Transaction> getNextTransaction() throws InterruptedException {
+        return Optional.of(queue.take());
+    }
+
+    @Override
+    public boolean hasNext() {
+        return queue.size() > 0;
     }
 }

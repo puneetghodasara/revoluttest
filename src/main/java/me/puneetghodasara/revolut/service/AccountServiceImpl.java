@@ -77,6 +77,7 @@ public class AccountServiceImpl implements AccountService {
 
         final Double currentBalance = getBalance(accountId);
         if (currentBalance < debitAmount) {
+            accountEntity.getAmountLock().writeLock().unlock();
             throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INSUFFICIENT_BALANCE);
         }
         try {

@@ -25,6 +25,18 @@ public class TransactionReponse implements Serializable {
         this.transactionStatusMessage = transactionStatusMessage;
     }
 
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public TransactionStatus getTransactionStatus() {
+        return transactionStatus;
+    }
+
+    public String getTransactionStatusMessage() {
+        return transactionStatusMessage;
+    }
+
     public static TransactionReponse fromEntity(final Transaction transaction){
         return new TransactionReponse(transaction.getTransactionId(),
                 transaction.getTransactionStatus(),

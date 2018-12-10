@@ -32,23 +32,43 @@ public class TransactionProcessor implements Runnable {
     private final AccountService accountService;
 
     private final ConversionService conversionService;
+    private final boolean shutdownIfNoTx;
 
+    static final int MAX_TRY = 100;
+
+    // For JUnit only
+    TransactionProcessor(final TransactionBroker transactionBroker,
+                                final AccountService accountService,
+                                final ConversionService conversionService,
+                                boolean shutdownIfNoTx) {
+        this.transactionBroker = transactionBroker;
+        this.accountService = accountService;
+        this.conversionService = conversionService;
+        this.shutdownIfNoTx = shutdownIfNoTx;
+    }
 
     public TransactionProcessor(final TransactionBroker transactionBroker,
                                 final AccountService accountService,
                                 final ConversionService conversionService) {
-        this.transactionBroker = transactionBroker;
-        this.accountService = accountService;
-        this.conversionService = conversionService;
+        this(transactionBroker, accountService, conversionService, false);
     }
 
     @Override
     public void run() {
-        Transaction transaction = transactionBroker.getNextTransaction().orElse(null);
-        if (transaction == null) {
-            return;
+        try {
+            while(true) {
+                if(!transactionBroker.hasNext() && shutdownIfNoTx){
+                    break;
+                }
+                transactionBroker.getNextTransaction()
+                        .ifPresent(this::processTransaction);
+            }
+        } catch (InterruptedException e) {
+            logger.error("Error getting next transaction.");
         }
+    }
 
+    private void processTransaction(final Transaction transaction) {
         final String sourceAccount = transaction.getSourceAccount();
         final String targetAccount = transaction.getTargetAccount();
         final AccountEntity sourceAccountEntity;
@@ -79,8 +99,22 @@ public class TransactionProcessor implements Runnable {
             transaction.updateTransactionStatus(TransactionStatus.DEBIT_SUCCESS, "");
             logger.info("Source Account {} debited with amount {}", sourceAccount, amount);
 
-        } else if (transaction.getTransactionStatus() == TransactionStatus.DEBIT_SUCCESS) {
-            logger.debug("Source Account {} was already debited with amount {}", sourceAccount, amount);
+        } else if (transaction.getTransactionStatus() == TransactionStatus.DEBIT_SUCCESS && transaction.getAttempted() == MAX_TRY) {
+            // Last Try hence try to refund
+            logger.info("Source Account {} will be refunded with amount {}", sourceAccount, amount);
+            try {
+                if(!accountService.credit(sourceAccount, amount)){
+                    throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.CREDIT_FAILED);
+                }
+            } catch (AccountOperationException e) {
+                // It was best effort.
+                logger.info("Source Account {} NOT refunded with amount {}", sourceAccount, amount);
+                transaction.updateTransactionStatus(TransactionStatus.ERROR, "Maximum attempt reached");
+                return;
+            }
+            transaction.updateTransactionStatus(TransactionStatus.SUCCESS, "");
+            logger.info("Source Account {} refunded with amount {}", sourceAccount, amount);
+            return;
         }
 
         // Here, convert the money
@@ -93,7 +127,15 @@ public class TransactionProcessor implements Runnable {
         } catch (AccountOperationException e) {
             // Could not credit, keep transaction in DEBIT_SUCCESS status and put it to retry
             logger.info("Failed to credit Target Account {} with amount {}", targetAccount, amount);
-            transactionBroker.addTransaction(transaction);
+            transaction.updateAttempted();
+
+//            if(transaction.getAttempted() < MAX_TRY){
+                // Add only if we are not run out of attempts
+                transactionBroker.addTransaction(transaction);
+//            } else {
+////                transaction.updateTransactionStatus(TransactionStatus.ERROR, "Tried Maximum Attempts");
+//                logger.info("Target Account {} NOT credited with amount {}", targetAccount, amount);
+//            }
             return;
         }
         transaction.updateTransactionStatus(TransactionStatus.SUCCESS, "");

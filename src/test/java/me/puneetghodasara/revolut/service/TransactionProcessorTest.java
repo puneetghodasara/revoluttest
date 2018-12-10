@@ -17,20 +17,33 @@ public class TransactionProcessorTest {
 
     private TransactionQueueBroker testTxBroker;
     private TransactionProcessor testTxProcessor;
-    private TransactionProcessor testErrorTxProcessor;
+    private TransactionProcessor testErrorTxProcessor1;
+    private TransactionProcessor testErrorTxProcessor2;
     private AccountService testAccountService;
-    private AccountService testErrorAccountService;
+    private AccountService testErrorAccountService1;
+    private AccountService testErrorAccountService2;
 
     // Can be mocked
     class ErrorenousAccountServiceImpl extends AccountServiceImpl {
 
-        public ErrorenousAccountServiceImpl(final AccountRepository accountRepository, final AccountNumberService accountNumberService) {
+
+        private final int TOTAL_ATTEMPT_FAIL;
+
+        public ErrorenousAccountServiceImpl(final AccountRepository accountRepository, final AccountNumberService accountNumberService, final int num) {
             super(accountRepository, accountNumberService);
+            TOTAL_ATTEMPT_FAIL = TransactionProcessor.MAX_TRY + num;
         }
+
+        private int attempt = 0;
 
         @Override
         public boolean credit(final String accountId, final Double creditAmount) throws AccountOperationException {
-            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.CREDIT_FAILED);
+
+            if (attempt++ < TOTAL_ATTEMPT_FAIL) {
+                throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.CREDIT_FAILED);
+            } else {
+                return super.credit(accountId, creditAmount);
+            }
         }
     }
 
@@ -41,9 +54,11 @@ public class TransactionProcessorTest {
         AccountInMemoryDao accountRepository = new AccountInMemoryDao();
         testAccountService = new AccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
         SimpleConversionServiceImpl conversionService = new SimpleConversionServiceImpl();
-        testTxProcessor = new TransactionProcessor(testTxBroker, testAccountService, conversionService);
-        testErrorAccountService = new ErrorenousAccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
-        testErrorTxProcessor = new TransactionProcessor(testTxBroker, testErrorAccountService, conversionService);
+        testTxProcessor = new TransactionProcessor(testTxBroker, testAccountService, conversionService, true);
+        testErrorAccountService1 = new ErrorenousAccountServiceImpl(accountRepository, new AccountNumberServiceImpl(), 1);
+        testErrorAccountService2 = new ErrorenousAccountServiceImpl(accountRepository, new AccountNumberServiceImpl(), 0);
+        testErrorTxProcessor1 = new TransactionProcessor(testTxBroker, testErrorAccountService1, conversionService, true);
+        testErrorTxProcessor2 = new TransactionProcessor(testTxBroker, testErrorAccountService2, conversionService, true);
     }
 
     @Test
@@ -59,6 +74,25 @@ public class TransactionProcessorTest {
 
         assertEquals(1, testAccountService.getBalance(accountId1), 0.00001);
         assertEquals(10, testAccountService.getBalance(accountId2), 0.00001);
+    }
+
+    @Test
+    public void testMultiple() throws AccountOperationException {
+        final String accountId1 = testAccountService.open(Currency.getInstance("EUR")).getAccountId();
+        testAccountService.credit(accountId1, 10D);
+        final String accountId2 = testAccountService.open(Currency.getInstance("EUR")).getAccountId();
+        final Transaction transaction1 = new Transaction.Builder(accountId1, accountId2, 2D).build();
+        testTxBroker.addTransaction(transaction1);
+        final Transaction transaction2 = new Transaction.Builder(accountId1, accountId2, 2D).build();
+        testTxBroker.addTransaction(transaction2);
+        testTxProcessor.run();
+        testTxProcessor.run();
+
+        Assert.assertEquals(TransactionStatus.SUCCESS, transaction1.getTransactionStatus());
+        Assert.assertEquals(TransactionStatus.SUCCESS, transaction2.getTransactionStatus());
+
+        assertEquals(6, testAccountService.getBalance(accountId1), 0.00001);
+        assertEquals(4, testAccountService.getBalance(accountId2), 0.00001);
     }
 
     @Test
@@ -86,13 +120,15 @@ public class TransactionProcessorTest {
         testTxBroker.addTransaction(transaction);
 
         // Run with error so it will be debited but not credited
-        testErrorTxProcessor.run();
-        Assert.assertEquals(TransactionStatus.DEBIT_SUCCESS, transaction.getTransactionStatus());
+        testErrorTxProcessor1.run();
+
+        Assert.assertEquals(TransactionStatus.ERROR, transaction.getTransactionStatus());
 
         assertEquals(1, testAccountService.getBalance(accountId1), 0.00001);
         assertEquals(0, testAccountService.getBalance(accountId2), 0.00001);
 
-        // Second run should pass
+        // Re-Add manually and in Second run it should pass
+        testTxBroker.addTransaction(transaction);
         testTxProcessor.run();
 
         Assert.assertEquals(TransactionStatus.SUCCESS, transaction.getTransactionStatus());
@@ -101,6 +137,25 @@ public class TransactionProcessorTest {
         assertEquals(10, testAccountService.getBalance(accountId2), 0.00001);
 
     }
+
+    @Test
+    public void testRefund() throws AccountOperationException {
+        final String accountId1 = testAccountService.open(Currency.getInstance("EUR")).getAccountId();
+        testAccountService.credit(accountId1, 11D);
+        final String accountId2 = testAccountService.open(Currency.getInstance("EUR")).getAccountId();
+        final Transaction transaction = new Transaction.Builder(accountId1, accountId2, 10D).build();
+        testTxBroker.addTransaction(transaction);
+
+        // Run with error so it will be debited but not credited
+        testErrorTxProcessor2.run();
+
+        Assert.assertEquals(TransactionStatus.SUCCESS, transaction.getTransactionStatus());
+
+        assertEquals(11, testAccountService.getBalance(accountId1), 0.00001);
+        assertEquals(0, testAccountService.getBalance(accountId2), 0.00001);
+
+    }
+
 
     @Test
     public void testIntraCurrencyOperation() throws AccountOperationException {
