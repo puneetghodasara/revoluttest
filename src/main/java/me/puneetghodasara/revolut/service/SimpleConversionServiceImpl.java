@@ -8,7 +8,7 @@ import java.util.Currency;
  * For more productive use case, we can build cache-based implementation </br>
  * that takes values from third-party </br>
  */
-public class SameCurrencyConversionServiceImpl implements ConversionService {
+public class SimpleConversionServiceImpl implements ConversionService {
 
     @Override
     public Double convert(final Currency sourceCurrency, final Currency targetCurrency, final Double amount) {

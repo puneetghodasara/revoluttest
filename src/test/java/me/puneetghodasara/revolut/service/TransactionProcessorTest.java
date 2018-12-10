@@ -40,7 +40,7 @@ public class TransactionProcessorTest {
         testTxBroker = new TransactionQueueBroker();
         AccountInMemoryDao accountRepository = new AccountInMemoryDao();
         testAccountService = new AccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
-        SameCurrencyConversionServiceImpl conversionService = new SameCurrencyConversionServiceImpl();
+        SimpleConversionServiceImpl conversionService = new SimpleConversionServiceImpl();
         testTxProcessor = new TransactionProcessor(testTxBroker, testAccountService, conversionService);
         testErrorAccountService = new ErrorenousAccountServiceImpl(accountRepository, new AccountNumberServiceImpl());
         testErrorTxProcessor = new TransactionProcessor(testTxBroker, testErrorAccountService, conversionService);

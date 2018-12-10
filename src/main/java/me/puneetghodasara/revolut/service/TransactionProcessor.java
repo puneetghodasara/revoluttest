@@ -84,7 +84,6 @@ public class TransactionProcessor implements Runnable {
         }
 
         // Here, convert the money
-
         Double targetAmount = conversionService.convert(sourceAccountEntity.getCurrency(), targetAccountEntity.getCurrency(), amount);
 
         try {

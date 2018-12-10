@@ -43,7 +43,7 @@ public class AccountServiceImpl implements AccountService {
         logger.debug("Trying to credit amount {} to account {}", creditAmount, accountEntity.getAccountId());
 
         if (creditAmount <= 0) {
-            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INVALID_CREDIT_ACCOUNT);
+            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INVALID_AMOUNT);
         }
 
         accountEntity.getAmountLock().writeLock().lock();
@@ -70,7 +70,7 @@ public class AccountServiceImpl implements AccountService {
         logger.debug("Trying to debit amount {} to account {}", debitAmount, accountEntity.getAccountId());
 
         if (debitAmount <= 0) {
-            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INVALID_DEBIT_ACCOUNT);
+            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INVALID_AMOUNT);
         }
 
         accountEntity.getAmountLock().writeLock().lock();
