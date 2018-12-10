@@ -2,6 +2,8 @@ package me.puneetghodasara.revolut.service;
 
 import me.puneetghodasara.revolut.entity.Transaction;
 
+import java.util.Optional;
+
 /**
  * Acts as a broker between transactions </br>
  *
@@ -21,8 +23,11 @@ public interface TransactionBroker {
 
     /**
      * Pulls a next eligible transaction from to-be-processed </br>
-     * to process
+     * to process </br>
+     * This can be blocking or non-blocking depends on the </br>
+     * concrete implementation and hence return type is wrapped </br>
+     * in {@link Optional}
      * @return Transaction to process
      */
-    Transaction getNextTransaction();
+    Optional<Transaction> getNextTransaction();
 }

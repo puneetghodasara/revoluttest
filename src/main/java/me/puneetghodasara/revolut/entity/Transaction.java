@@ -14,7 +14,7 @@ public class Transaction {
     private final String message;
     private final String transactionId;
     private TransactionStatus transactionStatus;
-    private TransactionStatusMessage txStatusMessage;
+    private String txStatusMessage;
 
     private static final AtomicLong transactionSequence = new AtomicLong();
 
@@ -54,11 +54,11 @@ public class Transaction {
         return transactionStatus;
     }
 
-    public TransactionStatusMessage getTxStatusMessage() {
+    public String getTxStatusMessage() {
         return txStatusMessage;
     }
 
-    public void updateTransactionStatus(final TransactionStatus newStatus, final TransactionStatusMessage txStatusMessage){
+    public void updateTransactionStatus(final TransactionStatus newStatus, final String txStatusMessage){
         this.transactionStatus = newStatus;
         this.txStatusMessage = txStatusMessage;
     }

@@ -10,7 +10,7 @@ public class AccountOperationException extends Exception {
         UNKNOWN_ACCOUNT,
         ERROR_DELETEING_ACCOUNTS,
         NONEMPTY_ACCOUNTS,
-        UNKNOWN_ACCOUNT_FOR_USER;
+        UNKNOWN_ACCOUNT_FOR_USER, DEBIT_FAILED, CREDIT_FAILED;
     }
 
     public AccountOperationException(final AccountOperationExceptionMessages message) {

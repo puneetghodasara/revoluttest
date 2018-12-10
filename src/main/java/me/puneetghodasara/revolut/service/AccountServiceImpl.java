@@ -74,11 +74,12 @@ public class AccountServiceImpl implements AccountService {
         }
 
         accountEntity.getAmountLock().writeLock().lock();
+
+        final Double currentBalance = getBalance(accountId);
+        if (currentBalance < debitAmount) {
+            throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INSUFFICIENT_BALANCE);
+        }
         try {
-            final Double currentBalance = getBalance(accountId);
-            if (currentBalance < debitAmount) {
-                throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.INSUFFICIENT_BALANCE);
-            }
             final double newAmountValue = currentBalance - debitAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
             accountRepository.updateAccount(newAccount);

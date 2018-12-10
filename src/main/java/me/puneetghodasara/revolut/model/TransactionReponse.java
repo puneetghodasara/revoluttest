@@ -2,7 +2,6 @@ package me.puneetghodasara.revolut.model;
 
 import me.puneetghodasara.revolut.entity.Transaction;
 import me.puneetghodasara.revolut.entity.TransactionStatus;
-import me.puneetghodasara.revolut.entity.TransactionStatusMessage;
 
 import java.io.Serializable;
 
@@ -16,11 +15,11 @@ public class TransactionReponse implements Serializable {
 
     private final TransactionStatus transactionStatus;
 
-    private final TransactionStatusMessage transactionStatusMessage;
+    private final String transactionStatusMessage;
 
     public TransactionReponse(final String transactionId,
                               final TransactionStatus transactionStatus,
-                              final TransactionStatusMessage transactionStatusMessage) {
+                              final String transactionStatusMessage) {
         this.transactionId = transactionId;
         this.transactionStatus = transactionStatus;
         this.transactionStatusMessage = transactionStatusMessage;
