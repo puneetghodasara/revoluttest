@@ -6,23 +6,23 @@ A sample code to transact an amount from a source account to a destination accou
 There are two REST-like endpoints.
 - UserAccountEndpoint. It has following APIs,
     - GET /user
-    - GET /user/<user-id>
+    - GET /user/{user-id}
     - POST /user
-    - DEL /user/<user-id>
-    - GET /user/<user-id>/account 
-    - POST /user/<user-id>/account
-    - GET /user/<user-id>/account/<account-id>
-    - DEL /user/<user-id>/account/<account-id>
+    - DEL /user/{user-id}
+    - GET /user/{user-id}/account 
+    - POST /user/{user-id}/account
+    - GET /user/{user-id}/account/{account-id}
+    - DEL /user/{user-id}/account/{account-id}
 - TransactionEndpoint. It has following APIs
     - PUT /transaction
-    - GET /transaction/<transaction-id>
+    - GET /transaction/{transaction-id}
 
 A transaction request takes three parameters,
 1) Source Account ID
 2) Target Account ID
 3) Amount to transfer
 
-It creates a transaction request to a broker and returns the transaction ID to the caller.
+It creates a transaction request to a broker and returns the transaction ID to the caller. The caller needs to poll transaction ID to check the status of the transaction.
 
 A simple BlockingQueue based implementation has been provided for this demonstration.
 A Runnable TransactionProcessor is used for demonstration that watches the broker and process the transaction.
@@ -38,7 +38,7 @@ A Runnable TransactionProcessor is used for demonstration that watches the broke
 A simple hardcoded currency conversion service is used if accounts are maintained in different currencies.
 ###### Notes
 - Transaction Processor is not crash-proof and consistency is not guaranteed in case of server restart.
-- Records of transaction states must be maintain in a separate persistent system (e.g. File, DB etc).
+- Records of transaction states must be maintain in a separate persistent system (e.g. File, DB etc) to solve above issue.
 
 ### Functionality Tests
 TransactionProcessorTest unit tests the following scenarios.
