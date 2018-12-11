@@ -1,4 +1,6 @@
 # revoluttest
+[![Coverage Status](https://coveralls.io/repos/github/puneetghodasara/revoluttest/badge.svg?branch=master)](https://coveralls.io/github/puneetghodasara/revoluttest?branch=master) [![Build Status](https://travis-ci.com/puneetghodasara/revoluttest.svg?branch=master)](https://travis-ci.com/puneetghodasara/revoluttest.svg?branch=master)
+
 
 A sample code to transact an amount from a source account to a destination account.
 
