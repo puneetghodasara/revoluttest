@@ -32,7 +32,7 @@ public class UserServiceImplTest {
     @Test
     public void testRegister() throws UserOperationException {
         testObject.register("mockUser-1");
-        final UserEntity answerObject = userRepository.getUser("mockUser-1").orElseThrow(AssertionError::new);
+        final UserEntity answerObject = userRepository.getById("mockUser-1").orElseThrow(AssertionError::new);
         Assert.assertNotNull(answerObject);
         Assert.assertEquals("mockUser-1", answerObject.getUserId());
     }
@@ -87,7 +87,7 @@ public class UserServiceImplTest {
     public void testUnregister() throws UserOperationException, AccountOperationException {
         testObject.register("mockUser-1");
         testObject.unregister("mockUser-1");
-        Assert.assertEquals(0, userRepository.getUsers().count());
+        Assert.assertEquals(0, userRepository.getAll().count());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class UserServiceImplTest {
         testObject.register("mockUser-1");
         testObject.addAccount("mockUser-1", Currency.getInstance("EUR"));
         testObject.unregister("mockUser-1");
-        Assert.assertEquals(0, userRepository.getUsers().count());
+        Assert.assertEquals(0, userRepository.getAll().count());
     }
 
     @Test(expected = AccountOperationException.class)
@@ -104,7 +104,7 @@ public class UserServiceImplTest {
         final String accountId = testObject.addAccount("mockUser-1", Currency.getInstance("EUR")).getAccountId();
         accountService.credit(accountId, 1D);
         testObject.unregister("mockUser-1");
-        Assert.assertEquals(0, userRepository.getUsers().count());
+        Assert.assertEquals(0, userRepository.getAll().count());
     }
 
     @Test

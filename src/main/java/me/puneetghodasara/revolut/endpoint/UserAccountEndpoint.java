@@ -19,14 +19,14 @@ import java.util.stream.Stream;
 public interface UserAccountEndpoint {
 
     /**
-     * GET call to get all users
+     * GET call to getById all users
      * @Path("/user")
      * @return
      */
     Stream<UserModel> getAllUsers();
 
     /**
-     * GET call to get User info
+     * GET call to getById User info
      * @Path("/user/<user-id>")
      * @param userId
      * @return
@@ -51,7 +51,7 @@ public interface UserAccountEndpoint {
 
 
     /**
-     * GET call to get accouns of a User
+     * GET call to getById accouns of a User
      * @Path("/user/<user-id>/account")
      * @param userId
      * @return
@@ -59,7 +59,7 @@ public interface UserAccountEndpoint {
     List<AccountModel> getAccounts(final String userId) throws UserOperationException;
 
     /**
-     * GET call to get an accoun of a User
+     * GET call to getById an accoun of a User
      * @Path("/user/<user-id>/account/<account-id>")
      * @param userId
      * @return

@@ -7,11 +7,11 @@ import java.util.stream.Stream;
 
 public interface AccountRepository {
 
-    Optional<AccountEntity> getAccount(final String id);
+    Optional<AccountEntity> getById(final String id);
 
-    void updateAccount(final AccountEntity accountEntity);
+    AccountEntity updateEntity(final String id, final AccountEntity accountEntity);
 
-    Stream<AccountEntity> getAllAccounts();
+    Stream<AccountEntity> getAll();
 
-    void deleteAccount(String accountId);
+    void deleteById(String accountId);
 }

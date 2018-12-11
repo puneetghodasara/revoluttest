@@ -7,11 +7,11 @@ import java.util.stream.Stream;
 
 public interface UserRepository {
 
-    Stream<UserEntity> getUsers();
+    Stream<UserEntity> getAll();
 
-    Optional<UserEntity> getUser(final String id);
+    Optional<UserEntity> getById(final String id);
 
-    UserEntity updateUser(final UserEntity userEntity);
+    UserEntity updateEntity(final String id, final UserEntity userEntity);
 
-    void deleteUser(String userId);
+    void deleteById(String userId);
 }

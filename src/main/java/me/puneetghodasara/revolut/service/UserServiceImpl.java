@@ -26,12 +26,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Stream<UserEntity> getUsers() {
-        return userRepository.getUsers();
+        return userRepository.getAll();
     }
 
     @Override
     public Optional<UserEntity> getUser(final String userId) {
-        return userRepository.getUser(userId);
+        return userRepository.getById(userId);
     }
 
     /**
@@ -39,13 +39,13 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public synchronized void register(final String userId) throws UserOperationException {
-        final boolean present = userRepository.getUser(userId).isPresent();
+        final boolean present = userRepository.getById(userId).isPresent();
         if (present) {
             logger.warn("User ID {} was already registered ", userId);
             throw new UserOperationException(UserOperationException.UserOperationExceptionMessages.USERID_TAKEN);
         }
 
-        userRepository.updateUser(new UserEntity(userId));
+        userRepository.updateEntity(userId, new UserEntity(userId));
     }
 
     @Override
@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
             throw new UserOperationException(UserOperationException.UserOperationExceptionMessages.ERROR_DELETEING_ACCOUNTS);
         }
 
-        userRepository.deleteUser(userId);
+        userRepository.deleteById(userId);
         return true;
     }
 
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
         final UserEntity user = findUserOrThrow(userId);
         final AccountEntity account = accountService.open(currency);
         final UserEntity userWithNewAccount = user.withNewAccount(account.getAccountId());
-        userRepository.updateUser(userWithNewAccount);
+        userRepository.updateEntity(userId, userWithNewAccount);
         return account;
     }
 
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
         }
 
         final UserEntity userWithoutAccount = user.withOutAccount(accountId);
-        userRepository.updateUser(userWithoutAccount);
+        userRepository.updateEntity(userWithoutAccount.getUserId(), userWithoutAccount);
     }
 
     @Override

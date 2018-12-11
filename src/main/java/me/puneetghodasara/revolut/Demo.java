@@ -55,7 +55,7 @@ public class Demo {
         final AccountModel account3 = userAccountEndpoint.openNewAccount(user2.getUserId(), "EUR");
 
         // Can not transact with zero balances, hence putting a hack to provide 30 Euro to first account
-        accountRepository.updateAccount(new AccountEntity(account1.getAccountId(), Currency.getInstance("EUR")).withNewAmount(30d));
+        accountRepository.updateEntity(account1.getAccountId(), new AccountEntity(account1.getAccountId(), Currency.getInstance("EUR")).withNewAmount(30d));
 
         final ExecutorService executorService = Executors.newFixedThreadPool(3);
         executorService.submit(new TransactionProcessor(broker, accountService, conversionService));
@@ -110,7 +110,7 @@ public class Demo {
     private static void printAllAmounts(final AccountRepository accountRepository) {
         final String header = String.format("|%10.15s|%10.8s|%10.7s|", "Account", "Currency", "Amount");
         logger.info(header);
-        accountRepository.getAllAccounts().forEach(accountEntity -> {
+        accountRepository.getAll().forEach(accountEntity -> {
             final String aLine = String.format("|%10.15s|%10.5s|%10.5s|", accountEntity.getAccountId(), accountEntity.getCurrency(), accountEntity.getAmount());
             logger.info(aLine);
         });

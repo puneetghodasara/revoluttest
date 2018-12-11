@@ -31,7 +31,7 @@ public class AccountInMemoryDaoTest {
 
     @org.junit.Test
     public void getAccount() {
-        final Optional<AccountEntity> answerObject = testObject.getAccount("mockAccount-1");
+        final Optional<AccountEntity> answerObject = testObject.getById("mockAccount-1");
 
         Assert.assertTrue(answerObject.isPresent());
         Assert.assertEquals(answerObject.get(), actualObject);
@@ -41,9 +41,9 @@ public class AccountInMemoryDaoTest {
     @org.junit.Test
     public void updateAccount() {
         actualObject = new AccountEntity("mockAccount-1", Currency.getInstance("EUR"), 10d);
-        testObject.updateAccount(actualObject);
+        testObject.updateEntity("mockAccount-1", actualObject);
 
-        final Optional<AccountEntity> answerObject = testObject.getAccount("mockAccount-1");
+        final Optional<AccountEntity> answerObject = testObject.getById("mockAccount-1");
 
         Assert.assertTrue(answerObject.isPresent());
         Assert.assertEquals(answerObject.get().getAmount(), Double.valueOf(10d));
@@ -53,7 +53,7 @@ public class AccountInMemoryDaoTest {
     @org.junit.Test
     public void getAccountsByCurrency() {
 
-        final List<AccountEntity> accountsByCurrency = testObject.getAllAccounts()
+        final List<AccountEntity> accountsByCurrency = testObject.getAll()
                 .collect(Collectors.toList());
 
         Assert.assertNotNull(accountsByCurrency);

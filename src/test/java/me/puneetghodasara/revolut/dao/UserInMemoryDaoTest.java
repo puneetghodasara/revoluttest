@@ -24,13 +24,13 @@ public class UserInMemoryDaoTest {
 
     @Test
     public void getUsers() {
-        final Stream<UserEntity> answerObject = testObject.getUsers();
+        final Stream<UserEntity> answerObject = testObject.getAll();
         Assert.assertEquals(1, answerObject.count());
     }
 
     @Test
     public void getUser() {
-        final Optional<UserEntity> answerObject = testObject.getUser("mockUser-1");
+        final Optional<UserEntity> answerObject = testObject.getById("mockUser-1");
         Assert.assertTrue(answerObject.isPresent());
         Assert.assertEquals(answerObject.get(), actualObject);
 
@@ -39,13 +39,13 @@ public class UserInMemoryDaoTest {
     @Test
     public void updateUser() {
 
-        final UserEntity actualObject = testObject.getUser("mockUser-1")
+        final UserEntity actualObject = testObject.getById("mockUser-1")
                 .orElseThrow(AssertionError::new)
                 .withNewAccount(new AccountEntity("dummyAccount-1", Currency.getInstance("EUR")).getAccountId());
 
-        testObject.updateUser(actualObject);
+        testObject.updateEntity("mockUser-1", actualObject);
 
-        final Optional<UserEntity> answerObject = testObject.getUser("mockUser-1");
+        final Optional<UserEntity> answerObject = testObject.getById("mockUser-1");
 
         Assert.assertTrue(answerObject.isPresent());
         Assert.assertNotNull(answerObject.get().getAccounts());

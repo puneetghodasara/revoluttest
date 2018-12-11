@@ -36,15 +36,15 @@ public class UserAccountEndpointImplTest {
 
     @Test
     public void getAllUsers() {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
-        userRepository.updateUser(new UserEntity("mockUser-2"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-2", new UserEntity("mockUser-2"));
         final long totalUsers = testObject.getAllUsers().count();
         Assert.assertEquals(2, totalUsers);
     }
 
     @Test
     public void getUserFalse() {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
         final Optional<UserModel> user = testObject.getUser("mockUser-2");
         Assert.assertNotNull(user);
         Assert.assertFalse(user.isPresent());
@@ -52,7 +52,7 @@ public class UserAccountEndpointImplTest {
 
     @Test
     public void getUserTrue() {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
         final Optional<UserModel> user = testObject.getUser("mockUser-1");
         Assert.assertNotNull(user);
         Assert.assertTrue(user.isPresent());
@@ -62,36 +62,36 @@ public class UserAccountEndpointImplTest {
     @Test
     public void createUser() throws UserOperationException {
         testObject.createUser("mockUser-1");
-        final long count = userRepository.getUsers().count();
+        final long count = userRepository.getAll().count();
         Assert.assertEquals(1, count);
     }
 
     @Test(expected = UserOperationException.class)
     public void createDuplicateUser() throws UserOperationException {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
         testObject.createUser("mockUser-1");
     }
 
     @Test
     public void deleteUser() throws AccountOperationException, UserOperationException {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
         final boolean deleted = testObject.deleteUser("mockUser-1");
         Assert.assertTrue(deleted);
     }
 
     @Test(expected = AccountOperationException.class)
     public void deleteUserWithNonZeroAccount() throws AccountOperationException, UserOperationException {
-        accountRepository.updateAccount(new AccountEntity("mockAccount-1", Currency.getInstance("EUR")).withNewAmount(1D));
-        userRepository.updateUser(new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
+        accountRepository.updateEntity("mockAccount-1", new AccountEntity("mockAccount-1", Currency.getInstance("EUR")).withNewAmount(1D));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
         final boolean deleted = testObject.deleteUser("mockUser-1");
     }
 
     @Test
     public void getAccounts() throws UserOperationException {
-        accountRepository.updateAccount(new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
-        accountRepository.updateAccount(new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
-        accountRepository.updateAccount(new AccountEntity("mockAccount-3", Currency.getInstance("EUR")));
-        userRepository.updateUser(new UserEntity("mockUser-1").withNewAccount("mockAccount-1").withNewAccount("mockAccount-2"));
+        accountRepository.updateEntity("mockAccount-1", new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
+        accountRepository.updateEntity("mockAccount-2", new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
+        accountRepository.updateEntity("mockAccount-3", new AccountEntity("mockAccount-3", Currency.getInstance("EUR")));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1").withNewAccount("mockAccount-1").withNewAccount("mockAccount-2"));
 
 
         final int accounts = testObject.getAccounts("mockUser-1").size();
@@ -100,8 +100,8 @@ public class UserAccountEndpointImplTest {
 
     @Test
     public void getAccount() throws AccountOperationException, UserOperationException {
-        accountRepository.updateAccount(new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
-        userRepository.updateUser(new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
+        accountRepository.updateEntity("mockAccount-1", new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
 
         final AccountModel account = testObject.getAccount("mockUser-1", "mockAccount-1");
         Assert.assertNotNull(account);
@@ -111,20 +111,20 @@ public class UserAccountEndpointImplTest {
 
     @Test(expected = AccountOperationException.class)
     public void getCrossAccount() throws AccountOperationException, UserOperationException {
-        accountRepository.updateAccount(new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
-        userRepository.updateUser(new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
+        accountRepository.updateEntity("mockAccount-1", new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1").withNewAccount("mockAccount-1"));
 
-        accountRepository.updateAccount(new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
-        userRepository.updateUser(new UserEntity("mockUser-2").withNewAccount("mockAccount-2"));
+        accountRepository.updateEntity("mockAccount-2", new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
+        userRepository.updateEntity("mockUser-2", new UserEntity("mockUser-2").withNewAccount("mockAccount-2"));
 
         final AccountModel account = testObject.getAccount("mockUser-1", "mockAccount-2");
     }
 
     @Test
     public void openNewAccount() throws AccountOperationException, UserOperationException {
-        userRepository.updateUser(new UserEntity("mockUser-1"));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1"));
         testObject.openNewAccount("mockUser-1", "EUR");
-        final long count = accountRepository.getAllAccounts().count();
+        final long count = accountRepository.getAll().count();
         assertEquals(1, count);
     }
 
@@ -135,12 +135,12 @@ public class UserAccountEndpointImplTest {
 
     @Test
     public void deleteAccount() throws AccountOperationException, UserOperationException {
-        accountRepository.updateAccount(new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
-        accountRepository.updateAccount(new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
-        userRepository.updateUser(new UserEntity("mockUser-1").withNewAccount("mockAccount-1").withNewAccount("mockAccount-2"));
+        accountRepository.updateEntity("mockAccount-1", new AccountEntity("mockAccount-1", Currency.getInstance("EUR")));
+        accountRepository.updateEntity("mockAccount-2", new AccountEntity("mockAccount-2", Currency.getInstance("EUR")));
+        userRepository.updateEntity("mockUser-1", new UserEntity("mockUser-1").withNewAccount("mockAccount-1").withNewAccount("mockAccount-2"));
 
         testObject.deleteAccount("mockUser-1", "mockAccount-2");
-        final long count = accountRepository.getAllAccounts().count();
+        final long count = accountRepository.getAll().count();
         assertEquals(1, count);
     }
 }

@@ -27,8 +27,8 @@ public class AccountServiceImpl implements AccountService {
         try {
             final String accountId = accountNumberService.nextAccountNumber();
             final AccountEntity newAccount = new AccountEntity(accountId, currency, 0d);
-            accountRepository.updateAccount(newAccount);
-            return accountRepository.getAccount(accountId)
+            accountRepository.updateEntity(newAccount.getAccountId(), newAccount);
+            return accountRepository.getById(accountId)
                     .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_OPENING_ACCOUNT));
         } catch (Exception e) {
             throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_OPENING_ACCOUNT);
@@ -51,7 +51,7 @@ public class AccountServiceImpl implements AccountService {
             final Double currentBalance = getBalance(accountId);
             final double newAmountValue = currentBalance + creditAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
-            accountRepository.updateAccount(newAccount);
+            accountRepository.updateEntity(newAccount.getAccountId(), newAccount);
         } catch (final Exception e) {
             // Take all exception into consideration
             logger.warn("credit failed for account {}", accountEntity.getAccountId());
@@ -83,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
         try {
             final double newAmountValue = currentBalance - debitAmount;
             final AccountEntity newAccount = accountEntity.withNewAmount(newAmountValue);
-            accountRepository.updateAccount(newAccount);
+            accountRepository.updateEntity(newAccount.getAccountId(), newAccount);
         } catch (final Exception e) {
             // Take all exception into consideration
             logger.warn("credit failed for account {}", accountEntity.getAccountId());
@@ -101,7 +101,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountEntity.getAmountLock().readLock().lock();
         try {
-            return accountRepository.getAccount(accountEntity.getAccountId())
+            return accountRepository.getById(accountEntity.getAccountId())
                     .orElseThrow(() -> new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.UNKNOWN_ACCOUNT))
                     .getAmount();
         } finally {
@@ -120,7 +120,7 @@ public class AccountServiceImpl implements AccountService {
             throw new AccountOperationException(AccountOperationException.AccountOperationExceptionMessages.ERROR_DELETEING_ACCOUNTS);
         }
         try {
-            accountRepository.deleteAccount(accountId);
+            accountRepository.deleteById(accountId);
         } catch (Exception e) {
             logger.error("Error deleting account {} ", accountId);
             return false;
@@ -132,6 +132,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Optional<AccountEntity> getAccount(final String accountId) {
-        return accountRepository.getAccount(accountId);
+        return accountRepository.getById(accountId);
     }
 }

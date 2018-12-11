@@ -28,7 +28,7 @@ public class AccountServiceImplTest {
         final AccountEntity account = testObject.open(Currency.getInstance("EUR"));
         Assert.assertNotNull(account);
         Assert.assertEquals("EUR", account.getCurrency().getCurrencyCode());
-        final long totalAccounts = accountRepository.getAllAccounts().count();
+        final long totalAccounts = accountRepository.getAll().count();
         Assert.assertEquals(1, totalAccounts);
     }
 
@@ -42,7 +42,7 @@ public class AccountServiceImplTest {
     }
 
 
-    @Test
+    @Test(expected = AccountOperationException.class)
     public void debit_Insufficient() throws AccountOperationException {
         final AccountEntity accountEntity = testObject.open(Currency.getInstance("EUR"));
         final boolean debited = testObject.debit(accountEntity.getAccountId(), 1D);

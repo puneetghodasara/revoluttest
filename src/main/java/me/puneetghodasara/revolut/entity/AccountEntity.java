@@ -34,7 +34,7 @@ public class AccountEntity {
     }
 
     /**
-     * To get a new object with all similar values except amount value
+     * To getById a new object with all similar values except amount value
      * @param newAmountValue new amount value
      * @return new {@link AccountEntity} object with new amount value
      */

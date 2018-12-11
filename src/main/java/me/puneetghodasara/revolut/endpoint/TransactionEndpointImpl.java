@@ -28,13 +28,13 @@ public class TransactionEndpointImpl implements TransactionEndpoint {
             logger.error("Unable to add transaction.");
             throw new TransactionException(TransactionException.TransactionExceptionMessages.FAIL_TO_ACCEPT);
         }
-        transactionRepository.update(transaction);
+        transactionRepository.updateEntity(transaction.getTransactionId(), transaction);
         return transaction.getTransactionId();
     }
 
     @Override
     public TransactionReponse getStatus(final String transactionId) throws TransactionException {
-        return transactionRepository.get(transactionId)
+        return transactionRepository.getById(transactionId)
                 .map(TransactionReponse::fromEntity)
                 .orElseThrow(() -> new TransactionException(TransactionException.TransactionExceptionMessages.UNKNOWN_TRANSACTION_ID));
     }
