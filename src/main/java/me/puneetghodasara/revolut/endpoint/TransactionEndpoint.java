@@ -10,6 +10,7 @@ public interface TransactionEndpoint {
 
     /**
      * Creates a transaction and add it to transaction Queue to be picked up by transaction manager </br>
+     * PUT @Path("/transaction")
      * @param sourceAccount accountId from which amount would be debited
      * @param targetAccount accountId to which amount would be credited
      * @param amount amount to be transfer
@@ -20,6 +21,7 @@ public interface TransactionEndpoint {
 
     /**
      * Retrieves transaction status for a given transactionID
+     * GET @Path("/transaction/<transaction-id>")
      * @param transactionId
      * @return
      */
